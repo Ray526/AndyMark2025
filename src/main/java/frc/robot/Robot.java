@@ -6,9 +6,15 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * This is a demo program showing the use of the DifferentialDrive class. Runs
@@ -23,6 +29,11 @@ public class Robot extends TimedRobot {
   private final TalonSRX m_rightMotor1 = new TalonSRX(2);
   private final TalonSRX m_rightMotor2 = new TalonSRX(3);
 
+  private final CANcoder m_CanCoder1 = new CANcoder(11); // left cancoder
+  private final CANcoder m_CanCoder2 = new CANcoder(12); // right cancoder
+  private final CANcoderConfiguration leftConfig = new CANcoderConfiguration();
+  private final CANcoderConfiguration rightConfig = new CANcoderConfiguration();
+
   /** Called once at the beginning of the robot program. */
   public Robot() {
 
@@ -33,6 +44,29 @@ public class Robot extends TimedRobot {
     m_leftMotor2.setInverted(false);
     m_rightMotor1.setInverted(true);
     m_rightMotor2.setInverted(true);
+
+    // left CANcoder config
+    leftConfig.MagnetSensor.MagnetOffset = 0.0;
+    leftConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+    // CANcoder config
+    rightConfig.MagnetSensor.MagnetOffset = 0.0;
+    rightConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+    // apply config to CANcoders
+    m_CanCoder1.getConfigurator().apply(leftConfig);
+    m_CanCoder2.getConfigurator().apply(rightConfig);
+  }
+
+  // Called every 20ms, no matter the robot mode (disabled, autonomous, teleop, or test).
+  // use this for code that needs to run constantly, such as updating sensors or dashboards.
+  @Override
+  public void robotPeriodic() {
+    // Publish data to SmartDashboard (cuz we get the CANcoder in double,
+    // we use SmartDashboard.putNumber()
+    // other common methods: putData(), putString(), putBoolean())
+    // the String key("left/right CAMcoder") will display on SmartDashboard(a block)
+    // btw we can use Shuffleboard and Elastic to check the data
+    SmartDashboard.putNumber("left CANcoder", m_CanCoder1.getAbsolutePosition().getValueAsDouble());
+    SmartDashboard.putNumber("right CANcoder", m_CanCoder2.getAbsolutePosition().getValueAsDouble());
   }
 
   @Override
